@@ -1,0 +1,53 @@
+def patientLogin(request):
+    if not 'patient_id' in request.session:
+        if request.method == 'POST':
+            form = login(request.POST or None)
+            if form.is_valid():
+                email = form.cleaned_data.get('email')
+                password = form.cleaned_data.get('password')
+                db = DB_functions()
+                db.set_patient_email(email)
+                db.set_patient_password(password)
+                result = db.patient_login(request)
+                if result == 'temp_email_exists':
+                    print(result)
+                    return HttpResponseRedirect('/patient/patientProfile/')
+                elif result == 'email_exists':
+                    if request.session['user_T'] == 2:
+                        if 'remember_me' in request.POST:
+                            request.session.set_expiry(60 * 60 * 24 * 30)
+                            return HttpResponseRedirect('/doctor')
+                        else:
+                            return HttpResponseRedirect('/doctor')
+                    else:
+                        if 'remember_me' in request.POST:
+                            request.session.set_expiry(60 * 60 * 24 * 30)
+                            return HttpResponseRedirect('/patient/Index/')
+                        else:
+                            return HttpResponseRedirect('/patient/Index/')
+                elif result == 'wrong_password':
+                    return HttpResponseRedirect('/patient/?alert=wrong_password')
+                elif result == 'wrong_email':
+                    return HttpResponseRedirect('/patient/?alert=wrong_email')
+            #######################################################################
+            # if request.method == 'POST':
+            # if 'for_pass' in request.POST:
+            em = request.POST['for_pass']
+            uid = user.objects.get(email_1=em).user_id
+            # pid = patient.objects.get(Patient=uid).id
+            title = 'Reset Your Password'
+            body = 'Visit This Link For Reset Your Password' \
+                   ' http://127.0.0.1:8000/patient/forgetPassword/' + str(uid)
+            email = EmailMessage(title, body, to=[em])
+            email.send()
+            # else:
+            #     print('error')
+            #######################################################################
+        else:
+            form = login()
+        context = {
+            'form': form
+        }
+        return render(request, 'login.html', context)
+    else:
+        return HttpResponseRedirect('/patient/Index/')
