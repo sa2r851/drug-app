@@ -114,17 +114,3 @@ class PharmacyUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return PharmacistProfile.objects.all()
 
-
-
-class JlistView(ObjectMultipleModelAPIView):
-    queryset = Jlist.objects.all()
-
-    def get_queryset(self, *args, **kwargs):
-        userId = self.kwargs.get('pk')
-        queryset = [
-            {'queryset': Jlist.objects.all(),
-             'serializer_class': JlistSerializers},
-            {'queryset': JStarList.objects.filter(userId=userId),
-             'serializer_class': JStarList}
-        ]
-        return queryset
